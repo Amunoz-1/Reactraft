@@ -126,7 +126,7 @@ export default class Codes {
     const { html_tag, inner_html, name } = component;
     let html: string = '';
     if (component.index === 0) {
-      html += `\n  useEffect(() => setTitle('${this.title}'), [setTitle]);\n\n`;
+      html += `\n  useEffect(() => setTitle("${this.title}"), [setTitle]);\n\n`;
     }
     let importChildren = '';
     const classAndId = ` className='${component.name}' id=${
@@ -155,17 +155,24 @@ export default class Codes {
 
       html +=
         `  return (\n    <div${classAndId}\n` +
-        childrenComps.map((childComponent) => {
-          if (!childComponent)
-            throw new Error('Converting jsx: component has an undefined child');
-          console.log('childComponent', childComponent);
-          return childComponent.name;
-        });
-
-      childrenNames.forEach((name) => {
-        console.log('childrenName,', name);
-        importChildren += `import ${name} from './${name}.jsx'\n`;
-      });
+        childrenComps
+          .map((childComponent) => {
+            if (!childComponent)
+              throw new Error(
+                'Converting jsx: component has an undefined child'
+              );
+            return `      <${childComponent.name} id='${childComponent.name}-${
+              childComponent.index
+            }' ${childComponent.props
+              .map(({ key, value }) =>
+                value[0] === '{' && value[value.length - 1] === '}'
+                  ? `${key}=${value}`
+                  : `${key}={'${value}'}`
+              )
+              .join(' ')}/>`;
+          })
+          .join('\n') +
+        '\n    </div>\n  );';
     }
 
     let propKeys = new Set(component.props.map(({ key }) => key));
